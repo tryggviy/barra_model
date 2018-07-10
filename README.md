@@ -28,5 +28,5 @@ This part is currently under experiment stage, and partialy for fun.
 
 
 #### Program Interface
-![image](https://github.com/tryggviy/barra_mfm/blob/master/Result/screenshot.PNG?raw=true)
+![image](https://github.com/tryggviy/barra_model/blob/master/Result/screenshot.PNG?raw=true)
 
