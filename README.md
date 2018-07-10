@@ -22,10 +22,11 @@ This is the main body of this project, also mostly used during my internship.
 This part is currently under experiment stage, and partialy for fun.
 
 #### Model Output
-![image](https://github.com/tryggviy/barra_mfm/blob/master/Result/summary.PNG?raw=true)
-![image](https://github.com/tryggviy/barra_mfm/blob/master/Result/factor.PNG?raw=true)
-![image](https://github.com/tryggviy/barra_mfm/blob/master/Result/chart.PNG?raw=true)
+![image](https://github.com/tryggviy/barra_model/blob/master/Result/summary.PNG?raw=true)
+![image](https://github.com/tryggviy/barra_model/blob/master/Result/factor.PNG?raw=true)
+![image](https://github.com/tryggviy/barra_model/blob/master/Result/chart.PNG?raw=true)
 
 
 #### Program Interface
 ![image](https://github.com/tryggviy/barra_mfm/blob/master/Result/screenshot.PNG?raw=true)
+
