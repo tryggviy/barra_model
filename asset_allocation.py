@@ -243,7 +243,7 @@ def mainfunc(global_lock, read_path_input, read_path_spec,target_date_rt, target
 
     total_portfilo_allocation = read_csv(read_path_spec+prod_name+'_netvalues.csv')
 
-    total_portfilo_value = total_portfilo_allocation[total_portfilo_allocation.DATE.apply(lambda x: str(x) == target_wgt_dt)].NV.values[0]
+    total_portfilo_value = total_portfilo_allocation[total_portfilo_allocation.DATE.apply(lambda x: str(x) == date_cvt(target_wgt_dt))].NV.values[0]
 
     wgt_CH,etfdict = trans_table(read_csv(read_path_spec+prod_name+'_shares_'+target_wgt_dt+'.csv'))
 
@@ -267,10 +267,10 @@ def mainfunc(global_lock, read_path_input, read_path_spec,target_date_rt, target
                 reuslt_wigt = etfdict[fts]
                 
                 if etfdict[fts]>0:
-                    result_df['weight'] = (reuslt_wigt/total_portfilo_value) * result_df.weight
+                    result_df['weight'] = abs((reuslt_wigt/total_portfilo_value)) * result_df.weight
 
                 elif etfdict[fts]<0:
-                    result_df['weight'] = -(reuslt_wigt/total_portfilo_value) * result_df.weight
+                    result_df['weight'] = -abs((reuslt_wigt/total_portfilo_value)) * result_df.weight
 
                 elif etfdict[fts]==0:
                     result_df['weight'] = 0 * result_df.weight
@@ -290,7 +290,7 @@ def mainfunc(global_lock, read_path_input, read_path_spec,target_date_rt, target
 
             final_wights = idxweights_table
 
-            daily_wigt_dist = {'Portfolio':(total_share_value / total_portfilo_value), 'IH':sum(etfdict.values())/total_portfilo_value,'IC':0,'IF':0}
+            daily_wigt_dist = {'Portfolio':abs(total_share_value / total_portfilo_value), 'IH':abs(sum(etfdict.values())/total_portfilo_value),'IC':0,'IF':0}
 
         else:
             final_wights = wgt_CH1
@@ -321,11 +321,11 @@ def mainfunc(global_lock, read_path_input, read_path_spec,target_date_rt, target
             reuslt_wigt = futures_dict[fts]
                 
             if reuslt_wigt>0:
-                result_df['weight'] = (reuslt_wigt/total_portfilo_value) * result_df.weight
-                daily_wigt_dist[fts] = (reuslt_wigt/total_portfilo_value)
+                result_df['weight'] = abs((reuslt_wigt/total_portfilo_value)) * result_df.weight
+                daily_wigt_dist[fts] = abs((reuslt_wigt/total_portfilo_value))
             elif reuslt_wigt<0:
-                result_df['weight'] = -(reuslt_wigt/total_portfilo_value) * result_df.weight
-                daily_wigt_dist[fts] = -(reuslt_wigt/total_portfilo_value)
+                result_df['weight'] = -abs((reuslt_wigt/total_portfilo_value)) * result_df.weight
+                daily_wigt_dist[fts] = -abs((reuslt_wigt/total_portfilo_value))
             elif reuslt_wigt==0:
                 result_df['weight'] = 0 * result_df.weight
                 daily_wigt_dist[fts] = 0
@@ -357,9 +357,9 @@ def mainfunc(global_lock, read_path_input, read_path_spec,target_date_rt, target
         if_weight = if_pos*if_price*300
         ih_weight = ih_pos*ih_price*300
 
-        hs300['weight'] = (if_weight/total_portfilo_value) * hs300.weight
-        zz500['weight'] = (ic_weight/total_portfilo_value) * zz500.weight
-        sz50['weight'] = (ih_weight/total_portfilo_value) * sz50.weight
+        hs300['weight'] = abs((if_weight/total_portfilo_value)) * hs300.weight
+        zz500['weight'] = abs((ic_weight/total_portfilo_value)) * zz500.weight
+        sz50['weight'] = abs((ih_weight/total_portfilo_value)) * sz50.weight
 
         input_wigt_list = [hs300, zz500, sz50]
 
@@ -508,7 +508,7 @@ def period_accumalate(global_lock, daily_contributions,daily_weights,exposure_ma
 
 
 # It takes some daily results calculated above and calculate the analysis result for the whole period.
-def mainfunc_period(read_path_input, daily_contributions_table,daily_weights_pairs,dly_period,daily_wigt_dist_total,trade_dates_list):
+def mainfunc_period(read_path_input, daily_contributions_table,daily_weights_pairs,dly_period,daily_wigt_dist_total,trade_dates_list,read_path_spec,prod_name):
     Rt_portfolio = dict()
     print(trade_dates_list)
 
@@ -528,8 +528,25 @@ def mainfunc_period(read_path_input, daily_contributions_table,daily_weights_pai
     stocks_dict = dict()
     futures_dict = dict()
 
+    total_portfilo_allocation = read_csv(read_path_spec+prod_name+'_netvalues.csv')
+
+
+    daily_real_returns = dict()
+
 #################################################
-    for rt_date in list(daily_contributions_table.keys()):
+    for datei in range(1,len(trade_dates_list)):
+
+        rt_date = trade_dates_list[datei]
+        wigt_date = trade_dates_list[datei-1]
+
+        total_portfilo_value = total_portfilo_allocation[total_portfilo_allocation.DATE.apply(lambda x: str(x) == date_cvt(wigt_date))].NV.values[0]
+
+        total_portfilo_value_today = total_portfilo_allocation[total_portfilo_allocation.DATE.apply(lambda x: str(x) == date_cvt(rt_date))].NV.values[0]
+
+        total_portfilo_real_return = total_portfilo_value_today/total_portfilo_value
+
+        daily_real_returns[rt_date] = total_portfilo_real_return
+
         try:
             daily_return_table = read_table(read_path_input+'CNE5_Daily_Asset_Price.'+rt_date, sep = '|', header=1)
         except:
@@ -570,7 +587,10 @@ def mainfunc_period(read_path_input, daily_contributions_table,daily_weights_pai
             futures_dict[rt_date] = negetive_futures
             #########################
     print(Rt_portfolio)
+
     daily_total_rt = [x+1 for x in list(Rt_portfolio.values())]
+
+    print(daily_real_returns)
 
     stocks_return = prod(array([x+1 for x in list(stocks_dict.values())]))
     futures_return = prod(array([x+1 for x in list(futures_dict.values())]))
@@ -752,7 +772,7 @@ def mainf(read_start,read_end,sufx,index_mode, risk_free_rate,read_path_data,rea
             key=lambda daily_wigt_dist_common: dt.datetime.strptime((daily_wigt_dist_common[0]), '%Y%m%d')))
 
     result,total_return,specific_return_final,factor_var_dict,daily_total_return,factor_rts = mainfunc_period(
-        read_path_data, daily_contributions_table_common,daily_weights_pairs_common,list(dlytotal_specrt_period_common.values()),daily_wigt_dist_common,trade_dates_list)
+        read_path_data, daily_contributions_table_common,daily_weights_pairs_common,list(dlytotal_specrt_period_common.values()),daily_wigt_dist_common,trade_dates_list,read_path_spec,sufx)
 
     result_summary = show_result(read_path_spec,read_start,read_end, result,total_return,specific_return_final,factor_var_dict,\
         daily_total_return,len(daily_contributions_table_common),list(dlytotal_specrt_period_common.values()),\
@@ -767,3 +787,6 @@ if __name__ == "__main__":
     # for ii in range(6):
     #     ass = (aax[ii*2],aax[ii*2+1])
     #     result_summary = mainf(str(ass[1]),str(ass[0]),'hh','p1f1',0.035,'D:/Attibution_Analysis_June/running/')
+
+
+    
